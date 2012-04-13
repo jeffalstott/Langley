@@ -25,7 +25,7 @@ def plot_distribution(variable, name, x_label, xmin=None):
 plots = PdfPages('Langley.pdf')
 
 #Load data
-G = pickle.load(open('Network.p'))
+G = pickle.load(open('/data/alstottj/Langley/Network.p'))
 
 output_file = open('Langley.csv', 'wb')
 CSV_labels = ['node_id', 'age', 'city', 'country', 'depth', 'gender', 'sigma', 'source_from', 'source_through', 'wait_time', 'distance',\
@@ -158,7 +158,7 @@ for i in G.gender:
     elif G.gender[i]=='unknown':
         gender_colors.append('green')
 #networkx.draw(G,pos,node_size=20,alpha=0.5,with_labels=False,\
-#        node_color=gender_colors)
+        #        node_color=gender_colors)
 #plt.title("Team networks, colored by gender")
 #plots.savefig()
 #plt.close('all')
@@ -177,7 +177,7 @@ for i in G.age:
         age_colors.append('black')
 
 #networkx.draw(G,pos,node_size=20,alpha=0.5,with_labels=False,\
-#        node_color = age_colors)
+        #        node_color = age_colors)
 #plt.title("Team networks, colored by age group")
 #plots.savefig()
 #plt.close('all')

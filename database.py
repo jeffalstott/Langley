@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, Integer, String, ForeignKey, Date, Boolean
+from sqlalchemy import Column, Float, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 class Base(object):
@@ -26,6 +26,7 @@ class LangleyParticipant(Base):
     Has_Children = Column(Boolean)
     Relationship_with_Parent = Column(String(100))
     Heard_Through_Medium = Column(String(100))
+    Has_Parent = Column(Boolean)
     Parent_Child_Registration_Interval = Column(Float)
     Parent_Child_Registration_Interval_Corrected = Column(Float)
     Distance_from_Parent = Column(Float)
@@ -44,8 +45,8 @@ class LangleyParticipant(Base):
     Same_Gender_as_Parent = Column(Boolean)
     Same_Relationship_to_Parent_as_They_Had_to_Their_Parent = Column(Boolean)
     Heard_Through_Same_Medium_as_Parent = Column(Boolean)
-    Join_Time = Column(Date)
-    Parent_Join_Time = Column(Date)
+    Join_Time = Column(DateTime)
+    Parent_Join_Time = Column(DateTime)
     Latitude = Column(Float)
     Longitude = Column(Float)
 
@@ -66,9 +67,11 @@ class LangleyDistributionCompare(Base):
     D = Column(Float)
     KS = Column(Float)
     KW = Column(Float)
+    skew = Column(Float)
+    median = Column(Float)
 
-    distribution_id1 = Column(Integer, ForeignKey('LangleyDistribution.id'))
-    distribution_id2 = Column(Integer, ForeignKey('LangleyDistribution.id'))
+#    distribution_id1 = Column(Integer, ForeignKey('LangleyDistribution.id'))
+#    distribution_id2 = Column(Integer, ForeignKey('LangleyDistribution.id'))
 
 def create_database(url):
     from sqlalchemy import create_engine
