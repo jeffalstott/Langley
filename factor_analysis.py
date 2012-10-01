@@ -18,10 +18,10 @@ plots = PdfPages(base+'Langley_distributions.pdf')
 
 import powerlaw
 
-dependents = ['Number_of_Children', 'Parent_Child_Registration_Interval_Corrected', 'Distance_from_Parent', 'Has_Children']
-independents = ['Has_Parent', 'Age', 'Gender', 'Relationship_with_Parent', 'Heard_Through_Medium', 'Same_Age_as_Parent',\
+dependents = ['Number_of_Children', 'Parent_Child_Registration_Interval_Corrected', 'Distance_from_Parent', 'Has_Children', 'Has_Parent']
+independents = ['Age', 'Gender', 'Relationship_with_Parent', 'Heard_Through_Medium', 'Same_Age_as_Parent',\
         'Same_City_as_Parent', 'Same_Country_as_Parent', 'Same_Gender_as_Parent', 'Same_Relationship_to_Parent_as_They_Had_to_Their_Parent',\
-        'Heard_Through_Same_Medium_as_Parent']
+        'Heard_Through_Same_Medium_as_Parent', 'Has_Parent']
 
 
 #robjects.r("data<-read.table('%s')"%(base+'LangleyRtable'))
@@ -29,6 +29,12 @@ independents = ['Has_Parent', 'Age', 'Gender', 'Relationship_with_Parent', 'Hear
 
 for d in dependents:
     print d
+    if d == 'Has_Parent':
+        independents = ['Age', 'Gender', 'Relationship_with_Parent', 'Heard_Through_Medium']
+    else:
+        independents = ['Age', 'Gender', 'Relationship_with_Parent', 'Heard_Through_Medium', 'Same_Age_as_Parent',\
+                'Same_City_as_Parent', 'Same_Country_as_Parent', 'Same_Gender_as_Parent', 'Same_Relationship_to_Parent_as_They_Had_to_Their_Parent',\
+                'Heard_Through_Same_Medium_as_Parent', 'Has_Parent']
     for i in independents:
         print i
         ax = plt.subplot(1,1,1)
@@ -97,7 +103,7 @@ for d in dependents:
             else:
                 discrete = False
 
-            if d != 'Has_Children':
+            if d not in ['Has_Children', 'Has_Parent']:
                 fit = powerlaw.Fit(data, discrete=discrete)
                 R1, p1 = fit.loglikelihood_ratio('power_law', 'exponential')
                 R2, p2 = fit.loglikelihood_ratio('truncated_power_law', 'lognormal')

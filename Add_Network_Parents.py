@@ -15,7 +15,7 @@ for n_id in G.node:
         G.add_node(n_id, same_gender = (n['gender']==p['gender']))
         G.add_node(n_id, same_country = (n['country']==p['country']))
         G.add_node(n_id, same_source_from = (n['source_from']!=0 and n['source_from']==p['source_from']))
-        G.add_node(n_id, same_source_relationship= (n['source_through']!=0 and n['source_through']==p['source_through']))
+        G.add_node(n_id, same_source_through= (n['source_through']!=0 and n['source_through']==p['source_through']))
         G.add_node(n_id, has_children = G.out_degree()[n_id]>0) 
 
 pickle.dump(G, open('/data/alstottj/Langley/Network_parents.p', 'w'))
