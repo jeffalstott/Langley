@@ -1,72 +1,32 @@
-library(survival)
-library(rmeta)
 
 pdf('plot.pdf')
 par.default <- par()
 
-#analysis<-coxph(Surv(Parent_Child_Registration_Interval_Corrected_Days) ~ Gender*Parent_Gender 
-#    + Age*Parent_Age + Depth_in_Invite_Chain 
-#    + Number_of_Children+Relationship_with_Parent + Heard_Through_Medium 
-#    + Parent_Number_of_Children + Parent_Join_Time_numeric_days, data=dataf)
-
-#for (i in 1:length(dataf[,"Age"])){
-#    if (dataf[i,"Age"]=="unknown" | dataf[i, "Parent_Age"]=="unknown"){
-#        dataf[i,"Parent_Child_Age"]<-"unknown"
-#        next
-#    }
-#    age = as.numeric(levels(dataf[i,"Age"]))[dataf[i,"Age"]]
-#    parent_age = as.numeric(levels(dataf[i,"Parent_Age"]))[dataf[i,"Parent_Age"]]
-#    if (age < parent_age){
-#        dataf[i,"Parent_Child_Age"]<-1
-#    }else if (age == parent_age){
-#        dataf[i,"Parent_Child_Age"]<-2
-#    }else if (age > parent_age){
-#        dataf[i,"Parent_Child_Age"]<-3
-#    }
-#    else{
-#        print(i)
-#        print(age)
-#        print(parent_age)
-#    }
-#}
-
-#for (i in 1:length(dataf[,"Same_City_as_Parent"])){
-#    if (dataf[i,"Same_City_as_Parent"]==2 | dataf[i, "Same_Country_as_Parent"]==2){
-#        dataf[i,"Parent_Child_Location"]<-"unknown"
-#        next
-#    }
-#    if (dataf[i,"Same_Country_as_Parent"]==0){
-#        dataf[i,"Parent_Child_Location"]<-"Different Country"
-#    }else if(dataf[i,"Same_Country_as_Parent"]==1 & dataf[i, "Same_City_as_Parent"]==0){
-#        dataf[i,"Parent_Child_Location"]<-"Different City"
-#    }else if(dataf[i,"Same_Country_as_Parent"]==1 & dataf[i, "Same_City_as_Parent"]==1){
-#        dataf[i,"Parent_Child_Location"]<-"Same City"
-#    }
-#    else{
-#        print(i)
-#        print(age)
-#        print(parent_age)
-#    }
-#}
-
+#library(rms)
+library(survival)
+library(rmeta)
 analysis<-coxph(Surv(Parent_Child_Registration_Interval_Corrected_Days) ~
     (Parent_Gender*Gender)
 #    Gender
 #    + Parent_Gender
 #    + Parent_Child_Age
 #    + Age
+#    + Parent_Age
 #    + Age*Parent_Child_Age
+#     + (Parent_Agenumeric*Agenumeric)
     + (Parent_Age*Age)
     + Same_Relationship_to_Parent_as_They_Had_to_Their_Parent
     + Relationship_with_Parent
 #    + Heard_Through_Same_Medium_as_Parent
 #    + Heard_Through_Medium
     + Parent_Child_Location
-    + Parent_Number_of_Children
+    + Parent_Number_of_Children-1
     + Number_of_Children
-    + Depth_in_Invite_Chain
+#    + Has_Children
+    + Depth_in_Invite_Chain-1
     + Parent_Join_Time_numeric_days,
-    , data=dataf)
+    , data=dataf
+    , singular.ok=TRUE)
 
 m_var = c(
     "Parent_Number_of_Children",
