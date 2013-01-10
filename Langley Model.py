@@ -289,6 +289,12 @@ figures.append(fig)
 # <codecell>
 
 import matplotlib.image as mpimg
+img=mpimg.imread('/data/alstottjd/Langley/Parent-nChild-Diagram1.png')
+imshow(img)
+
+# <codecell>
+
+import matplotlib.image as mpimg
 fig = figure(figsize=(8.5, 11))
 ax = fig.add_subplot(211)
 l = ["Parent's Number\n of Children", "Child's Number\n of Future Children"]
@@ -316,7 +322,7 @@ inset_ax.axes.set_frame_on(False)
 
 
 ax = fig.add_subplot(212)
-l = [ 'Generation in\n Team', 'Additional Day after Registration Opened\n(Inverse of Days Left Until Contest)']
+l = [ 'Additional Generation\nin Team after the First', 'Additional Day after Registration Opened\n(Inverse of Days Left Until Contest)']
 slice_start = 25
 slice_end = 27
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
@@ -433,7 +439,7 @@ from powerlaw import cumulative_distribution_function
 
 fig = plt.figure(figsize=(12,4))
 ax = fig.add_subplot(131)
-xlabel("x (Depth in Mobilization Chain)")
+xlabel("x (Generation in Team)")
 yl = ylabel(u"p(X \u2265 x)")
 depths = numpy.array(networkx.get_node_attributes(G, 'depth').values())
 iCDF, bins = cumulative_distribution_function(depths, survival=True)
@@ -448,6 +454,7 @@ fit = powerlaw.Fit(depths, discrete=True)
 print(fit.alpha)
 print(fit.loglikelihood_ratio('power_law', 'exponential'))
 print(fit.loglikelihood_ratio('truncated_power_law', 'lognormal'))
+print(fit.loglikelihood_ratio('power_law', 'lognormal'))
 print(fit.xmin)
 
 ax = fig.add_subplot(132)
