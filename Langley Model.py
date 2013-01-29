@@ -352,18 +352,18 @@ figures.append(fig)
 # <codecell>
 
 #Principles taken from http://matplotlib.1069221.n5.nabble.com/svg-in-plot-td27904.html
-fig.savefig('Figure%i.eps'%fn); 
+fig.savefig("ChildrenandTime.eps")
 
 from pyx import canvas, epsfile 
 
 c = canvas.canvas() 
 # load both external files 
-c.insert(epsfile.epsfile(0, 0, 'Figure%i.eps'%fn)) 
+c.insert(epsfile.epsfile(0, 0, "ChildrenandTime.eps")) 
 c.insert(epsfile.epsfile(4, 17, "Parent-nChild-Diagram1.eps", scale=1.4)) 
 c.insert(epsfile.epsfile(13.5, 17, "Parent-nChild-Diagram2.eps", scale=1.4)) 
 
 # save generated EPS files 
-c.writeEPSfile("Figure%i"%fn) 
+c.writeEPSfile("figure5") 
 
 fn+=1
 
