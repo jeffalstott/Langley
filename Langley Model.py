@@ -3,6 +3,10 @@
 
 # <codecell>
 
+%load_ext rmagic
+
+# <codecell>
+
 cd /data/alstottjd/Langley/
 
 # <codecell>
@@ -119,6 +123,15 @@ def Langleyboxplot(indices, **kwargs):
 
 # <codecell>
 
+%%R
+source('/home/alstottjd/Code/Langley/analysis_script.r')
+library(car)
+ind = which(!is.na(analysis$coefficients))
+V = vcov(analysis)
+V = V[ind, ind]
+
+# <codecell>
+
 fig = figure()
 
 ax = fig.add_subplot(211)
@@ -149,6 +162,13 @@ figures.append(fig)
 
 # <codecell>
 
+%%R -o q
+hypothesis = "Relationship_with_Parent4 - Relationship_with_Parent5"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <codecell>
+
 fig = figure()
 ax = fig.add_subplot(111)
 l = ['Different Country', 'Different City', 'Same City']
@@ -159,6 +179,13 @@ ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
 title("Figure %i"%fn)
 fn+=1
 figures.append(fig)
+
+# <codecell>
+
+%%R -o q
+hypothesis = "Parent_Child_LocationDifferent Country - Parent_Child_LocationSame City"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
 
 # <codecell>
 
@@ -195,6 +222,13 @@ ax.set_yscale('log')
 title("Figure %i"%fn)
 fn+=1
 figures.append(fig)
+
+# <codecell>
+
+%%R
+hypothesis = "Parent_Genderfemale:Genderfemale - Parent_Gendermale:Gendermale"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
 
 # <codecell>
 
@@ -288,6 +322,13 @@ figures.append(fig)
 
 # <codecell>
 
+%%R -o q
+hypothesis = "Age1 - Age4"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <codecell>
+
 import matplotlib.image as mpimg
 img=mpimg.imread('/data/alstottjd/Langley/Parent-nChild-Diagram1.png')
 imshow(img)
@@ -361,7 +402,7 @@ fig = figure(figsize=(12,8))
 i = 3 #Picked team number 3
 d = max_depth(C[i])
 #title("Example team, %i members, %.0f generations"%(len(C[i].node), d))
-pos=networkx.spring_layout(C[i].to_undirected())
+#pos=networkx.spring_layout(C[i].to_undirected())
 #pos=networkx.graphviz_layout(C[i],prog="twopi",root=0)
 depth_colors = []
 for j in C[i].nodes():
@@ -400,6 +441,8 @@ networkx.draw(C[i],pos,node_size=node_size,
     with_labels=False, 
     node_color = depth_colors, edge_color = same_relationship_colors, 
     arrows=True)
+
+networkx.draw_networkx_nodes(C[i],pos,nodelist=[926],node_shape='s', node_color='k', node_size=100)
 
 
 #annotate("A", (0,1.), xycoords="axes fraction", 
