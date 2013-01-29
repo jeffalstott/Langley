@@ -329,13 +329,6 @@ print(q)
 
 # <codecell>
 
-import matplotlib.image as mpimg
-img=mpimg.imread('/data/alstottjd/Langley/Parent-nChild-Diagram1.png')
-imshow(img)
-
-# <codecell>
-
-import matplotlib.image as mpimg
 fig = figure(figsize=(8.5, 11))
 ax = fig.add_subplot(211)
 l = ["Parent's Number\n of Children", "Child's Number\n of Future Children"]
@@ -344,23 +337,6 @@ slice_end = 25
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
 ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
              fontsize=14) 
-
-img=mpimg.imread('/data/alstottjd/Langley/Parent-nChild-Diagram1.png')
-inset_ax = axes([0.17,0.5,0.3,0.3])
-
-inset_ax.imshow(img)
-inset_ax.axes.get_xaxis().set_visible(False)
-inset_ax.axes.get_yaxis().set_visible(False)
-inset_ax.axes.set_frame_on(False)
-
-img=mpimg.imread('/data/alstottjd/Langley/Parent-nChild-Diagram2.png')
-inset_ax = axes([0.58,0.5,0.3,0.3])
-
-inset_ax.imshow(img)
-inset_ax.axes.get_xaxis().set_visible(False)
-inset_ax.axes.get_yaxis().set_visible(False)
-inset_ax.axes.set_frame_on(False)
-
 
 ax = fig.add_subplot(212)
 l = [ 'Additional Generation\nin Team after the First', 'Additional Day after Registration Opened\n(Inverse of Days Left Until Contest)']
@@ -371,8 +347,25 @@ ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"),
              fontsize=14) 
 
 suptitle("Figure %i"%fn)
-fn+=1
 figures.append(fig)
+
+# <codecell>
+
+#Principles taken from http://matplotlib.1069221.n5.nabble.com/svg-in-plot-td27904.html
+fig.savefig('Figure%i.eps'%fn); 
+
+from pyx import canvas, epsfile 
+
+c = canvas.canvas() 
+# load both external files 
+c.insert(epsfile.epsfile(0, 0, 'Figure%i.eps'%fn)) 
+c.insert(epsfile.epsfile(4, 17, "Parent-nChild-Diagram1.eps", scale=1.4)) 
+c.insert(epsfile.epsfile(13.5, 17, "Parent-nChild-Diagram2.eps", scale=1.4)) 
+
+# save generated EPS files 
+c.writeEPSfile("Figure%i"%fn) 
+
+fn+=1
 
 # <codecell>
 
