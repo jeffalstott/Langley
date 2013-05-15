@@ -133,6 +133,9 @@ V = V[ind, ind]
 # <codecell>
 
 fig = figure()
+#fig = figure(figsize=(4.6,7.44295635))
+#fig = figure(figsize=(4.6,2.84295635))
+#fig = figure(figsize=(2.3,3.7214))
 
 ax = fig.add_subplot(211)
 #l = ['Friend', 'Family', 'Organization', 'Langley', 'Media', 'Other']
@@ -156,7 +159,7 @@ ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"),
 
 
 subplots_adjust(hspace=0.5)
-suptitle("Figure %i"%fn)
+#suptitle("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
@@ -176,7 +179,7 @@ slice_start = 20
 slice_end = 23
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
 
-title("Figure %i"%fn)
+#title("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
@@ -219,7 +222,7 @@ ax.set_yscale('log')
 
 #subplots_adjust(hspace=0.5)
 #suptitle("Figure %i"%fn)
-title("Figure %i"%fn)
+#title("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
@@ -316,7 +319,7 @@ ax.annotate("D", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"),
              fontsize=14) 
 
 subplots_adjust(hspace=0.5)
-suptitle("Figure %i"%fn)
+#suptitle("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
@@ -326,46 +329,6 @@ figures.append(fig)
 hypothesis = "Age1 - Age4"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
-
-# <codecell>
-
-fig = figure(figsize=(8.5, 11))
-ax = fig.add_subplot(211)
-l = ["Parent's Number\n of Children", "Child's Number\n of Future Children"]
-slice_start = 23
-slice_end = 25
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
-
-ax = fig.add_subplot(212)
-l = [ 'Additional Generation\nin Team after the First', 'Additional Day after Registration Opened\n(Inverse of Days Left Until Contest)']
-slice_start = 25
-slice_end = 27
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
-
-suptitle("Figure %i"%fn)
-figures.append(fig)
-
-# <codecell>
-
-#Principles taken from http://matplotlib.1069221.n5.nabble.com/svg-in-plot-td27904.html
-fig.savefig("ChildrenandTime.eps")
-
-from pyx import canvas, epsfile 
-
-c = canvas.canvas() 
-# load both external files 
-c.insert(epsfile.epsfile(0, 0, "ChildrenandTime.eps")) 
-c.insert(epsfile.epsfile(4, 17, "Parent-nChild-Diagram1.eps", scale=1.4)) 
-c.insert(epsfile.epsfile(13.5, 17, "Parent-nChild-Diagram2.eps", scale=1.4)) 
-
-# save generated EPS files 
-c.writeEPSfile("figure5") 
-
-fn+=1
 
 # <codecell>
 
@@ -395,7 +358,7 @@ fig = figure(figsize=(12,8))
 i = 3 #Picked team number 3
 d = max_depth(C[i])
 #title("Example team, %i members, %.0f generations"%(len(C[i].node), d))
-#pos=networkx.spring_layout(C[i].to_undirected())
+pos=networkx.spring_layout(C[i].to_undirected())
 #pos=networkx.graphviz_layout(C[i],prog="twopi",root=0)
 depth_colors = []
 for j in C[i].nodes():
@@ -435,7 +398,7 @@ networkx.draw(C[i],pos,node_size=node_size,
     node_color = depth_colors, edge_color = same_relationship_colors, 
     arrows=True)
 
-networkx.draw_networkx_nodes(C[i],pos,nodelist=[926],node_shape='s', node_color='k', node_size=100)
+#networkx.draw_networkx_nodes(C[i],pos,nodelist=[926],node_shape='s', node_color='k', node_size=100)
 
 
 #annotate("A", (0,1.), xycoords="axes fraction", 
@@ -449,7 +412,7 @@ networkx.draw_networkx_nodes(C[i],pos,nodelist=[926],node_shape='s', node_color=
 #annotate("C", (0,1.), xycoords= "axes fraction", 
 #             fontsize=14) 
 
-title("Figure S%i"%sfn)
+#title("Figure S%i"%sfn)
 sfn+=1
 figures.append(fig)
 
@@ -464,92 +427,147 @@ imgplot.axes.get_xaxis().set_visible(False)
 imgplot.axes.get_yaxis().set_visible(False)
 imgplot.axes.set_frame_on(False)
 
-title("Figure S%i"%sfn)
+#title("Figure S%i"%sfn)
 sfn+=1
 figures.append(fig)
 
 # <codecell>
 
-import powerlaw
-from powerlaw import cumulative_distribution_function
+fig = figure(figsize=(8.5, 11))
+ax = fig.add_subplot(211)
+l = ["Parent's Number\n of Children", "Child's Number\n of Future Children"]
+slice_start = 23
+slice_end = 25
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=14) 
 
+ax = fig.add_subplot(212)
+l = [ 'Additional Generation\nin Team after the First', 'Additional Day after Registration Opened\n(Inverse of Days Left Until Contest)']
+slice_start = 25
+slice_end = 27
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=14) 
+
+#suptitle("Figure S%i"%sfn)
+figures.append(fig)
+
+# <codecell>
+
+#Principles taken from http://matplotlib.1069221.n5.nabble.com/svg-in-plot-td27904.html
+fig.savefig("ChildrenandTime.eps")
+
+from pyx import canvas, epsfile 
+
+c = canvas.canvas() 
+# load both external files 
+c.insert(epsfile.epsfile(0, 0, "ChildrenandTime.eps")) 
+c.insert(epsfile.epsfile(4, 17, "Parent-nChild-Diagram1.eps", scale=1.4)) 
+c.insert(epsfile.epsfile(13.5, 17, "Parent-nChild-Diagram2.eps", scale=1.4)) 
+
+# save generated EPS files 
+c.writeEPSfile("FigureS3") 
+
+sfn+=1
+
+# <codecell>
+
+import powerlaw
+
+#generations = numpy.array(networkx.get_node_attributes(G, 'depth').values())
+#generations = generations[generations>0]
+#generations_fit = powerlaw.Fit(generations, discrete=True)
+
+depth = numpy.zeros(len(C))
+for i in range(len(C)):
+    generations = numpy.array(networkx.get_node_attributes(C[i], 'depth').values())
+    depth[i] = max(generations)
+depth = depth[depth>0]
+depth_fit = powerlaw.Fit(depth, discrete=True)
+
+team_sizes = numpy.zeros(len(C))
+for i in range(len(C)):
+    team_sizes[i] = networkx.number_of_nodes(C[i])
+sizes_fit = powerlaw.Fit(team_sizes, discrete=True)
+
+number_of_children = asarray(G.out_degree().values())
+number_of_children = number_of_children[number_of_children>0]
+num_children_fit = powerlaw.Fit(number_of_children, discrete=True)
+
+s = 50
 fig = plt.figure(figsize=(12,4))
 ax = fig.add_subplot(131)
-xlabel("x (Generation in Team)")
-yl = ylabel(u"p(X \u2265 x)")
-depths = numpy.array(networkx.get_node_attributes(G, 'depth').values())
-iCDF, bins = cumulative_distribution_function(depths, survival=True)
-ax.scatter(bins[bins>0], iCDF[bins>0])
+x,y = depth_fit.ccdf(original_data=True)
+ax.scatter(x,y, s=s)
 ax.set_xscale("log")
 ax.set_yscale("log")
+ax.set_xlabel("x (Team Generations)")
+yl = ax.set_ylabel(u"p(X \u2265 x)")
 xlim(1,10)
 ylim(10**-3,1)
 ax.annotate("A", (0,1.), xycoords=(yl, "axes fraction"), 
              fontsize=14) 
-fit = powerlaw.Fit(depths, discrete=True)
-print(fit.alpha)
-print(fit.loglikelihood_ratio('power_law', 'exponential'))
-print(fit.loglikelihood_ratio('truncated_power_law', 'lognormal'))
-print(fit.loglikelihood_ratio('power_law', 'lognormal'))
-print(fit.xmin)
+
+print(depth_fit.alpha)
+print(depth_fit.xmin)
+print(depth_fit.loglikelihood_ratio('power_law', 'exponential'))
+print(depth_fit.loglikelihood_ratio('power_law', 'lognormal'))
+
+fit_start = where(x==depth_fit.xmin)[0][0]
+y = depth_fit.power_law.ccdf(None)
+ax.plot(x[fit_start:],y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(depth_fit.alpha, depth_fit.xmin))
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[::-1], labels[::-1], loc=3)
 
 ax = fig.add_subplot(132)
-xlabel("x (Team Size)")
-yl = ax.set_ylabel(u"p(X \u2265 x)")
-#text(.1, .1, "Number of teams: "+str(len(C)), transform = ax.transAxes)
-team_sizes = numpy.zeros(len(C))
-for i in range(len(C)):
-    team_sizes[i] = networkx.number_of_nodes(C[i])
-iCDF, bins = cumulative_distribution_function(team_sizes, survival=True)
-ax.scatter(bins[bins>0], iCDF[bins>0])
+x,y = sizes_fit.ccdf(original_data=True)
+ax.scatter(x,y, s=s)
 ax.set_xscale("log")
 ax.set_yscale("log")
+ax.set_xlabel("x (Team Size)")
+yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(10**-3,1)
 xlim(1, 10**3)
 ax.annotate("B", (0,1.), xycoords=(yl, "axes fraction"), 
              fontsize=14) 
-#plt.setp(ax.get_yticklabels(), visible=False)
 
-fit = powerlaw.Fit(team_sizes, discrete=True)
-print(fit.alpha)
-print(fit.loglikelihood_ratio('power_law', 'exponential'))
-print(fit.loglikelihood_ratio('truncated_power_law', 'lognormal'))
-print(fit.loglikelihood_ratio('power_law', 'lognormal'))
-print(fit.xmin)
-x = arange(xlim()[0], xlim()[1])
-y = x**-(fit.alpha-1)
-handles = {}
-handles["alpha"] = ax.plot(x,y, 'k--', label='alpha = -%.2f'%(fit.alpha))
-#handles["alpha"] = ax.plot(x,y, 'k--', label=r'$\alpha$ = %.2f'%(fit.alpha))
-#handles["alpha"] = ax.plot(x,y, 'k--', label=u'\u03B1 = %.2f'%(fit.alpha))
+print(sizes_fit.alpha)
+print(sizes_fit.xmin)
+print(sizes_fit.loglikelihood_ratio('power_law', 'exponential'))
+print(sizes_fit.loglikelihood_ratio('power_law', 'lognormal'))
+
+fit_start = where(x==sizes_fit.xmin)[0][0]
+y = sizes_fit.power_law.ccdf(None)
+ax.plot(x[fit_start:],y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(sizes_fit.alpha, sizes_fit.xmin))
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[::-1], labels[::-1], loc=1)
+ax.legend(handles[::-1], labels[::-1], loc=3)
 
 ax = fig.add_subplot(133)
-xlabel("x (Number of Children)")
-yl = ax.set_ylabel(u"p(X \u2265 x)")
-number_of_children = asarray(G.out_degree().values())
-have_children = where(number_of_children>0)[0]
-#text(.1, .08, "Number of Participants: %i\nOnly the %.0f%% of participants\nwith children shown"%(len(number_of_children), 100*len(have_children)/float(len(number_of_children))),
-#     transform = ax.transAxes)
-iCDF, bins = cumulative_distribution_function(number_of_children[have_children], survival=True)
-ax.scatter(bins[bins>0], iCDF[bins>0])
+x,y = num_children_fit.ccdf(original_data=True)
+ax.scatter(x,y, s=s)
 ax.set_xscale("log")
 ax.set_yscale("log")
-ylim(10**-3,1)
-xlim(1, 10**3)
+ax.set_xlabel("x (Number of Children)")
+yl = ax.set_ylabel(u"p(X \u2265 x)")
+ylim(1.0/10**3,1)
+xlim(1, 10.0**3)
 ax.annotate("C", (0,1.), xycoords=(yl, "axes fraction"), 
              fontsize=14) 
-#plt.setp(ax.get_yticklabels(), visible=False)
-fit = powerlaw.Fit(number_of_children, discrete=True)
-print(fit.alpha)
-print(fit.loglikelihood_ratio('power_law', 'exponential'))
-print(fit.loglikelihood_ratio('truncated_power_law', 'lognormal'))
-print(fit.loglikelihood_ratio('power_law', 'lognormal'))
-print(fit.xmin)
+
+print(num_children_fit.alpha)
+print(num_children_fit.xmin)
+print(num_children_fit.loglikelihood_ratio('power_law', 'exponential'))
+print(num_children_fit.loglikelihood_ratio('power_law', 'lognormal'))
+
+fit_start = where(x==num_children_fit.xmin)[0][0]
+y = num_children_fit.power_law.ccdf(None)
+ax.plot(x[fit_start:],y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(num_children_fit.alpha, num_children_fit.xmin))
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[::-1], labels[::-1], loc=3)
 
 subplots_adjust(wspace=0.3)
-suptitle("Figure S%i"%sfn)
+#suptitle("Figure S%i"%sfn)
 sfn+=1
 figures.append(fig)
 
@@ -558,6 +576,7 @@ figures.append(fig)
 from matplotlib.backends.backend_pdf import PdfPages
 plots = PdfPages('Figures.pdf')
 for i in figures:
+    print i
     plots.savefig(i)
 plots.close()
 
