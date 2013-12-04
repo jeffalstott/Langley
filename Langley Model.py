@@ -177,7 +177,7 @@ x,y = num_children_fit.ccdf(original_data=True)
 ax.scatter(x,y, s=s)
 ax.set_xscale("log")
 ax.set_yscale("log")
-ax.set_xlabel("Number of Children per Parent")
+ax.set_xlabel("Number of Recruits per Participant")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(1.0/10**3,1)
 xlim(1, 10.0**3)
@@ -417,7 +417,7 @@ for i in ['Female', 'Male']:
 slice_start = 27
 slice_end = 31
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ylabel(r'Parent Gender $\rightarrow$ Child Gender')
+ylabel(r'Recruiter Gender $\rightarrow$ Recruit Gender')
 #ax.set_yscale('log')
 #ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
 #             fontsize=14) 
@@ -471,12 +471,12 @@ indices = [17, 15, 14, 19, 16 , 18]
 ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
 ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
 
-ylabel('Source from which Child First \nHeard about the Contest')
+ylabel('Source from which Recruit First \nHeard about the Contest')
 ax.annotate("a", annotate_coord, xycoords="axes fraction",
              fontsize=8, fontweight='bold') 
 
 ax = fig.add_subplot(122)
-l = ['Parent & Child\n Same Source', 'Parent & Child\n Different Source']
+l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
 slice_start = 12
 slice_end = 14
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
@@ -522,8 +522,8 @@ xl = xlim()
 xlim(xl[0], xl[1]+.5)
 
 ax1.set_xticklabels(l, fontsize=fontsize)
-text(-.01, -.1, 'Child Age:', transform = ax1.transAxes, horizontalalignment='right')
-text(-.01, -.25, 'Parent Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.1, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.25, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
 
 group="<20"
 t = ax1.get_xticks()
@@ -591,7 +591,7 @@ l = ["<20", "20-40", "40-60", ">60"]
 slice_start = 8
 slice_end = 12
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
-xlabel('Child Age Group')
+xlabel('Recruit Age Group')
 ax.set_yscale('log')
 ax.annotate("b", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
              fontsize=8, fontweight='bold') 
@@ -609,8 +609,8 @@ xlim(xl[0], xl[1]+.5)
 ax1.set_xticklabels(l, fontsize=fontsize)
 
 #ax1.set_xticklabels(["<20", "20-40", "40-60", ">60"], fontsize=8)
-text(-.01, -.1, 'Parent Age:', transform = ax1.transAxes, horizontalalignment='right')
-text(-.01, -.25, 'Child Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.1, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.25, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
 
 group="<20"
 t = ax.get_xticks()
@@ -679,7 +679,7 @@ l = ["<20", "20-40", "40-60", ">60"]
 slice_start = 4
 slice_end = 8
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
-xlabel('Parent Age Group')
+xlabel('Recruiter Age Group')
 ax.set_yscale('log')
 ax.annotate("d", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
              fontsize=8, fontweight='bold') 
@@ -805,7 +805,7 @@ fig = plt.figure(figsize=(figwidth, figwidth/1.618))
 
 ax = fig.add_subplot(111)
 l = ['Additional Generation\nin Team after the First',
-    "Child Having an\n Additional Future Child",
+    "Recruit Recruiting an\n Additional Future Recruit",
     'Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)']
 
 slice_start = 24
