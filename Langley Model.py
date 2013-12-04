@@ -16,6 +16,12 @@ figures = []
 fn = 1
 sfn = 1
 
+# <codecell>
+
+matplotlib.rc('font', **{'sans-serif' : 'Arial', 
+                         'family' : 'sans-serif',
+                         'size' : 10})
+
 # <markdowncell>
 
 # Load teams
@@ -43,12 +49,14 @@ def max_depth(G):
 
 # <markdowncell>
 
-# Example Team and Team Statistics
-# ---------
+# Figure 1: Example Team and Team Statistics
+# ----
 
 # <codecell>
 
-fig = plt.figure(figsize=(12,4))
+figwidth = 8.6
+
+fig = plt.figure(figsize=(figwidth, figwidth/(2*1.618)))
 
 
 
@@ -122,8 +130,8 @@ ymin= cut*min(yy for xx,yy in pos.values())
 #ax.set_ylim(ymin,ymax)
 
 yl = ax.set_ylabel("")
-ax.annotate("A", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=14) 
+ax.annotate("a", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 
 #######
@@ -149,8 +157,8 @@ ax.set_xlabel("Team Size")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(10**-3,1)
 xlim(1, 10**3)
-ax.annotate("B", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=14) 
+ax.annotate("b", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 print(sizes_fit.alpha)
 print(sizes_fit.xmin)
@@ -173,8 +181,8 @@ ax.set_xlabel("Number of Children per Parent")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(1.0/10**3,1)
 xlim(1, 10.0**3)
-ax.annotate("C", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=14) 
+ax.annotate("c", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 print(num_children_fit.alpha)
 print(num_children_fit.xmin)
@@ -187,15 +195,54 @@ ax.plot(x,y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(num_children
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[::-1], labels[::-1], loc=3)
 
-subplots_adjust(wspace=0.3)
+subplots_adjust(wspace=.3)
 #suptitle("Figure S%i"%sfn)
 sfn+=1
 figures.append(fig)
 
 # <markdowncell>
 
-# Pull in previously created Cox model results
+# Run Cox model
 # ---------
+
+# <codecell>
+
+%load_ext rmagic
+
+# <codecell>
+
+%%R
+library(survival)
+library(rmeta)
+analysis<-coxph(Surv(Parent_Child_Registration_Interval_Corrected_Days) ~
+    (Parent_Gender*Gender)
+    + (Parent_Age*Age)
+    + Same_Relationship_to_Parent_as_They_Had_to_Their_Parent
+    + Relationship_with_Parent
+    + Parent_Child_Location
+    + Parent_Number_of_Children-1
+    + Number_of_Children
+    + Parent_Join_Time_numeric_days,
+    , data=dataf
+    , subset=dataf$Parent_Child_Registration_Interval_Corrected_Days>0
+    , singular.ok=TRUE)
+
+q<-summary(analysis)
+n_variables = length(q$coefficients[,1])
+
+print(analysis$call)
+
+d = data.frame(coef=q$coefficients[,1], expcoef=q$conf.int[,1], lower95=q$conf.int[,3], upper95=q$conf.int[,4], se=q$coefficients[,3])
+
+write.csv(d, file='analysis.csv')
+
+
+ind = which(!is.na(analysis$coefficients))
+V = vcov(analysis)
+V = V[ind, ind]
+
+zph<-cox.zph(analysis)
+zphtable<-zph$table
 
 # <codecell>
 
@@ -211,7 +258,7 @@ with open('analysis.csv') as csvfile:
     labels = []
 
     for row in analysisreader:
-        print(row)
+#        print(row)
         if row[0]=="":
             continue
         
@@ -351,87 +398,16 @@ def Langleyboxplot(indices, **kwargs):
         **kwargs)
     return ax
 
-# <codecell>
+# <markdowncell>
 
-%load_ext rmagic
-
-# <codecell>
-
-%%R
-source('/home/alstottjd/Code/Langley/analysis_script.r')
-library(car)
-ind = which(!is.na(analysis$coefficients))
-V = vcov(analysis)
-V = V[ind, ind]
+# Figure 2
+# ----
 
 # <codecell>
 
-fig = figure(figsize=(11, 8.5))
-#fig = figure(figsize=(4.6,7.44295635))
-#fig = figure(figsize=(4.6,2.84295635))
-#fig = figure(figsize=(2.3,3.7214))
-annotate_coord = (-.15, 1)
+figwidth = 3.5
 
-ax = fig.add_subplot(121)
-#l = ['Friend', 'Family', 'Organization', 'Langley', 'Media', 'Other']
-#slice_start = 14
-#slice_end = 20
-l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
-indices = [17, 15, 14, 19, 16 , 18]
-ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
-ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
-ylabel('Source from which Child First \nHeard about the Contest')
-ax.annotate("A", annotate_coord, xycoords="axes fraction",
-             fontsize=14) 
-
-ax = fig.add_subplot(122)
-l = ['Parent & Child\n Same Source', 'Parent & Child\n Different Source']
-slice_start = 12
-slice_end = 14
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ax.yaxis.tick_right()
-
-ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
-ax.annotate("B", annotate_coord, xycoords="axes fraction", 
-             fontsize=14) 
-
-
-#subplots_adjust(hspace=0.5)
-#suptitle("Figure %i"%fn)
-fn+=1
-figures.append(fig)
-
-# <codecell>
-
-%%R -o q
-hypothesis = "Relationship_with_Parent4 - Relationship_with_Parent5"
-q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
-print(q)
-
-# <codecell>
-
-fig = figure(figsize=(11, 8.5))
-ax = fig.add_subplot(111)
-l = ['Different Country', 'Different City', 'Same City']
-slice_start = 20
-slice_end = 23
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
-#title("Figure %i"%fn)
-fn+=1
-figures.append(fig)
-
-# <codecell>
-
-%%R -o q
-hypothesis = "Parent_Child_LocationDifferent Country - Parent_Child_LocationSame City"
-q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
-print(q)
-
-# <codecell>
-
-fig = figure(figsize=(11,8.5))
-
+fig = figure(figsize=(figwidth, figwidth/1.618))
 ax = fig.add_subplot(111)
 l = []
 for i in ['Female', 'Male']:
@@ -471,11 +447,73 @@ hypothesis = "Parent_Genderfemale:Genderfemale - Parent_Gendermale:Gendermale"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
+# <markdowncell>
+
+# Figure 3
+# ----
+
 # <codecell>
 
-fig = figure(figsize=(8.5, 11))
+figwidth = 7.2
+
+fig = figure(figsize=(figwidth, figwidth/1.618))
+#fig = figure(figsize=(4.6,7.44295635))
+#fig = figure(figsize=(4.6,2.84295635))
+#fig = figure(figsize=(2.3,3.7214))
+annotate_coord = (-.15, 1)
+
+ax = fig.add_subplot(121)
+#l = ['Friend', 'Family', 'Organization', 'Langley', 'Media', 'Other']
+#slice_start = 14
+#slice_end = 20
+l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
+indices = [17, 15, 14, 19, 16 , 18]
+ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
+ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
+
+ylabel('Source from which Child First \nHeard about the Contest')
+ax.annotate("a", annotate_coord, xycoords="axes fraction",
+             fontsize=8, fontweight='bold') 
+
+ax = fig.add_subplot(122)
+l = ['Parent & Child\n Same Source', 'Parent & Child\n Different Source']
+slice_start = 12
+slice_end = 14
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+ax.yaxis.tick_right()
+
+ax.set_xticks([0.5, 1, 2])
+ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+ax.annotate("b", annotate_coord, xycoords="axes fraction", 
+             fontsize=8, fontweight='bold') 
+
+
+#subplots_adjust(hspace=0.5)
+#suptitle("Figure %i"%fn)
+fn+=1
+figures.append(fig)
+
+# <codecell>
+
+%%R -o q
+hypothesis = "Relationship_with_Parent4 - Relationship_with_Parent5"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <markdowncell>
+
+# Figure 4
+# ----
+
+# <codecell>
+
+figwidth = 3.5
+
+fig = figure(figsize=(7.2,7.2*1.618))
 
 l = ["<20", "20-40", "40-60", ">60"]
+fontsize=8
 ax1 = fig.add_subplot(441)
         
 indices = range(31,47,4)
@@ -483,17 +521,17 @@ ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
 xl = xlim()
 xlim(xl[0], xl[1]+.5)
 
-#ax1.set_xticklabels(["<20", "20-40", "40-60", ">60"], fontsize=8)
+ax1.set_xticklabels(l, fontsize=fontsize)
 text(-.01, -.1, 'Child Age:', transform = ax1.transAxes, horizontalalignment='right')
 text(-.01, -.25, 'Parent Age:', transform = ax1.transAxes, horizontalalignment='right')
 
 group="<20"
-t = ax.get_xticks()
+t = ax1.get_xticks()
 offset = 10**-4.5
 text(mean(t[1:3]), offset, group, horizontalalignment='center')
 
-ax1.annotate("A", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
+ax1.annotate("a", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 
 ########
@@ -501,6 +539,7 @@ ax = fig.add_subplot(442, sharey=ax1)
         
 indices = range(32,47,4)
 ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group="20-40"
 t = ax.get_xticks()
@@ -515,6 +554,7 @@ ax = fig.add_subplot(443, sharey=ax1)
         
 indices = range(33,47,4)
 ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group="40-60"
 t = ax.get_xticks()
@@ -530,6 +570,7 @@ ax = fig.add_subplot(444)
         
 indices = range(34,47,4)
 ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group=">60"
 t = ax.get_xticks()
@@ -552,8 +593,8 @@ slice_end = 12
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
 xlabel('Child Age Group')
 ax.set_yscale('log')
-ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
+ax.annotate("b", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 #########
 ax1 = fig.add_subplot(4,4,9)
@@ -565,6 +606,7 @@ indices = range(31,35)
 ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
 xl = xlim()
 xlim(xl[0], xl[1]+.5)
+ax1.set_xticklabels(l, fontsize=fontsize)
 
 #ax1.set_xticklabels(["<20", "20-40", "40-60", ">60"], fontsize=8)
 text(-.01, -.1, 'Parent Age:', transform = ax1.transAxes, horizontalalignment='right')
@@ -575,8 +617,8 @@ t = ax.get_xticks()
 offset = 10**-4.5
 text(mean(t[1:3]), offset, group, horizontalalignment='center')
 
-ax1.annotate("C", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
+ax1.annotate("c", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 
 ########
@@ -584,6 +626,7 @@ ax = fig.add_subplot(4,4,10, sharey=ax1)
         
 indices = range(35,39)
 ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group="20-40"
 t = ax.get_xticks()
@@ -598,6 +641,7 @@ ax = fig.add_subplot(4,4,11, sharey=ax1)
         
 indices = range(39,43)
 ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group="40-60"
 t = ax.get_xticks()
@@ -613,6 +657,7 @@ ax = fig.add_subplot(4,4,12)
         
 indices = range(43,47)
 ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
 group=">60"
 t = ax.get_xticks()
@@ -636,8 +681,8 @@ slice_end = 8
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
 xlabel('Parent Age Group')
 ax.set_yscale('log')
-ax.annotate("D", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=14) 
+ax.annotate("d", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontsize=8, fontweight='bold') 
 
 subplots_adjust(hspace=0.5)
 #suptitle("Figure %i"%fn)
@@ -651,31 +696,130 @@ hypothesis = "Age1 - Age4"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
+# <markdowncell>
+
+# Supplementary Information
+# ----
+
+# <markdowncell>
+
+# Figure S1: Mobilization speed descriptive statistics
+# ----
+
 # <codecell>
 
-import matplotlib.image as mpimg
-img=mpimg.imread('/data/alstottjd/Langley/Payout_diagram.png')
+%%R -o mobilization_times
+load('/data/alstottjd/Langley/Langleydataframe_children')
+mobilization_times = dataf$Parent_Child_Registration_Interval_Corrected_Days
 
-fig = plt.figure()
-imgplot = plt.imshow(img)
-imgplot.axes.get_xaxis().set_visible(False)
-imgplot.axes.get_yaxis().set_visible(False)
-imgplot.axes.set_frame_on(False)
+# <codecell>
 
-#title("Figure S%i"%sfn)
-sfn+=1
+print(mean(mobilization_times))
+print(median(mobilization_times))
+print(std(mobilization_times))
+from scipy.stats import skew
+print skew(mobilization_times)
+
+figwidth = 3.5
+figsize(figwidth, figwidth/1.618)
+hist(mobilization_times)
+xlabel("Mobilization Speed (Days)")
+ylabel("Participant Count")
+figures.append(gcf())
+
+# <codecell>
+
+import powerlaw
+fit = powerlaw.Fit(mobilization_times)
+fit.plot_ccdf()
+fit.power_law.plot_ccdf()
+fit.exponential.plot_ccdf()
+fit.lognormal.plot_ccdf()
+fit.distribution_compare('lognormal', 'exponential')
+
+figure()
+fit = powerlaw.Fit(mobilization_times, xmin=1)
+fit.plot_ccdf()
+fit.power_law.plot_ccdf()
+fit.exponential.plot_ccdf()
+fit.lognormal.plot_ccdf()
+fit.distribution_compare('lognormal', 'exponential')
+
+# <markdowncell>
+
+# Figure S2: Model Checking
+# ----
+
+# <codecell>
+
+%%R
+par(mfrow = c(2,2))
+zph<-cox.zph(analysis)
+for (j in 1:nrow(zph$var)){
+    if (!is.na(zph$table[j,3])){
+        plot(zph[j])
+    }
+}
+
+# <markdowncell>
+
+# Figure S3: Geography
+# ----
+
+# <codecell>
+
+figwidth = 3.5
+
+fig = figure(figsize=(figwidth, figwidth/1.618))
+
+ax = fig.add_subplot(111)
+l = ['Different Country', 'Different City', 'Same City']
+slice_start = 20
+slice_end = 23
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+#ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
+ax.set_xticks([1, 2, 3])
+ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+#title("Figure %i"%fn)
+fn+=1
 figures.append(fig)
 
 # <codecell>
 
-fig = figure(figsize=(8.5, 11))
+%%R -o q
+hypothesis = "Parent_Child_LocationDifferent Country - Parent_Child_LocationSame City"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <markdowncell>
+
+# Figure S4: Other Control Variables
+# ----
+
+# <codecell>
+
+figwidth = 3.5
+
+fig = plt.figure(figsize=(figwidth, figwidth/1.618))
+
 ax = fig.add_subplot(111)
 l = ['Additional Generation\nin Team after the First',
-    'Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)',
-    "Child Having an\n Additional Future Child"]
+    "Child Having an\n Additional Future Child",
+    'Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)']
+
 slice_start = 24
 slice_end = 27
-ax = Langleyboxplot([25,26,24], label=l, ax=ax, orientation='box')
+ax = Langleyboxplot([25,24,26], label=l, ax=ax, orientation='forest')
+#ax.set_yticks([0.5, 1, 2])
+#ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+#ax.xaxis.label.set_size(5)
+ax.set_xticks([0.5, 1, 2])
+ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax.yaxis.label.set_size(7)
+
+
+
 #ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
 #             fontsize=14) 
 
@@ -702,13 +846,25 @@ sfn+=1
 
 # <codecell>
 
+import matplotlib.image as mpimg
+img=mpimg.imread('/data/alstottjd/Langley/Payout_diagram.png')
+
+fig = plt.figure()
+imgplot = plt.imshow(img)
+imgplot.axes.get_xaxis().set_visible(False)
+imgplot.axes.get_yaxis().set_visible(False)
+imgplot.axes.set_frame_on(False)
+
+#title("Figure S%i"%sfn)
+sfn+=1
+#figures.append(fig)
+
+# <codecell>
+
 from matplotlib.backends.backend_pdf import PdfPages
 plots = PdfPages('Figures.pdf')
 for i in figures:
     print i
     plots.savefig(i, bbox_inches='tight')
 plots.close()
-
-# <codecell>
-
 
