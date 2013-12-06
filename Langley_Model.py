@@ -211,99 +211,50 @@ figures.append(fig)
 
 # <codecell>
 
-%%R
-load('/data/alstottjd/Langley/Langleydataframe_children')
+%%R -o factor_labels -d model_data
+
+mydata = read.csv("Langley_Recruits_anonymized_data.csv")
+
+mydata$Same_Heard_From_as_Recruiter <- factor(mydata$Same_Heard_From_as_Recruiter, levels=0:2)
+mydata$Same_Heard_From_as_Recruiter <- relevel(mydata$Same_Heard_From_as_Recruiter, ref="2")
+
+mydata$Heard_From <- factor(mydata$Heard_From, levels=c(0:5,100))
+mydata$Heard_From <- relevel(mydata$Heard_From, ref="0")
+
+mydata$Age <- relevel(mydata$Age, ref="unknown")
+mydata$Recruiter_Age <- relevel(mydata$Recruiter_Age, ref="unknown")
+
+mydata$Gender <- relevel(mydata$Gender, ref="unknown")
+mydata$Recruiter_Gender <- relevel(mydata$Recruiter_Gender, ref="unknown")
+
+mydata$Location_Comparison <- relevel(mydata$Location_Comparison, ref="unknown")
+
 library(survival)
 library(rmeta)
-analysis<-coxph(Surv(Parent_Child_Registration_Interval_Corrected_Days) ~
-    (Parent_Gender*Gender)
-#    Gender
-#    + Parent_Gender
-#    + Parent_Child_Age
-#    + Age
-#    + Parent_Age
-#    + Age*Parent_Child_Age
-#     + (Parent_Agenumeric*Agenumeric)
-    + (Parent_Age*Age)
-    + Same_Relationship_to_Parent_as_They_Had_to_Their_Parent
-    + Relationship_with_Parent
-#    + Heard_Through_Same_Medium_as_Parent
-#    + Heard_Through_Medium
-    + Parent_Child_Location
-    + Parent_Number_of_Children-1
-    + Number_of_Children
-#    + Has_Children
-    + Depth_in_Invite_Chain-1
-    + Parent_Join_Time_numeric_days,
-    , data=dataf
-#    , subset=dataf$Parent_Child_Registration_Interval_Corrected_Days>0
+library(car)
+analysis<-coxph(Surv(Registration_Interval_Days) ~
+    (Recruiter_Gender*Gender)
+    + (Recruiter_Age*Age)
+    + Location_Comparison
+    + Heard_From
+    + Same_Heard_From_as_Recruiter
+    + Recruiter_Number_of_Recruits-1
+    + Number_of_Recruits
+    + Recruitment_Generation-1
+    + Recruiter_Join_Date_Numeric_Days,
+    , data=mydata
+    , subset=mydata$Registration_Interval_Days>0.001
     , singular.ok=TRUE)
-
-q<-summary(analysis)
-n_variables = length(q$coefficients[,1])
 
 print(analysis$call)
 
-d = data.frame(coef=q$coefficients[,1], expcoef=q$conf.int[,1], lower95=q$conf.int[,3], upper95=q$conf.int[,4], se=q$coefficients[,3])
-
-write.csv(d, file='analysis.csv')
-
+q<-summary(analysis)
+model_data = data.frame(coef=q$coefficients[,1], expcoef=q$conf.int[,1], lower95=q$conf.int[,3], upper95=q$conf.int[,4], se=q$coefficients[,3])
+factor_labels = rownames(model_data)
 
 ind = which(!is.na(analysis$coefficients))
 V = vcov(analysis)
 V = V[ind, ind]
-
-zph<-cox.zph(analysis)
-zphtable<-zph$table
-
-# <codecell>
-
-coef = []
-expcoef = []
-lower95 = []
-upper95 = []
-se = []
-
-import csv
-with open('analysis.csv') as csvfile:
-    analysisreader = csv.reader(csvfile)
-    labels = []
-
-    for row in analysisreader:
-#        print(row)
-        if row[0]=="":
-            continue
-        
-        labels.append(row[0])
-        
-        for j in range(1,len(row)):
-            try:
-                row[j]=float(row[j])
-            except:
-                row[j] = nan
-            
-            if row[j] == 0:
-                row[j] = nan
-        
-        coef.append(row[1])
-        expcoef.append(row[2])
-        lower95.append(row[3])
-        upper95.append(row[4])
-        se.append(row[5])
-
-# <codecell>
-
-coef = asarray(coef)
-expcoef = asarray(expcoef)
-lower95 = asarray(lower95)
-upper95 = asarray(upper95)
-se = asarray(se)
-Langleylabels = asarray(labels)
-
-# <codecell>
-
-lowerse = exp(coef-se)
-upperse = exp(coef+se)
 
 # <markdowncell>
 
@@ -402,11 +353,21 @@ def boxplot(middle, boxtop, boxbottom, whiskertop, whiskerbottom, label=None, co
 
 # <codecell>
 
+#Langleylabels = asarray(factor_labels)
+
+#coef = model_data['coef']
+#expcoef = model_data['expcoef']
+#lower95 = model_data['lower95']
+#upper95 = model_data['upper95']
+#se = model_data['se']
+#lowerse = exp(coef-se)
+#upperse = exp(coef+se)
+
 def Langleyboxplot(indices, **kwargs):
-    print(Langleylabels[indices])
-    ax = boxplot(expcoef[indices], 
-        upperse[indices], lowerse[indices], 
-        upper95[indices], lower95[indices], 
+    print(factor_labels[indices])
+    ax = boxplot(model_data['expcoef'][indices],
+        exp(coef+se)[indices], exp(coef-se)[indices], 
+        model_data['upper95'][indices], model_data['lower95'][indices],
         **kwargs)
     return ax
 
@@ -455,7 +416,7 @@ figures.append(fig)
 # <codecell>
 
 %%R
-hypothesis = "Parent_Genderfemale:Genderfemale - Parent_Gendermale:Gendermale"
+hypothesis = "Recruiter_Genderfemale:Genderfemale - Recruiter_Gendermale:Gendermale"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
@@ -479,7 +440,7 @@ ax = fig.add_subplot(121)
 #slice_start = 14
 #slice_end = 20
 l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
-indices = [17, 15, 14, 19, 16 , 18]
+indices = [18, 16, 15, 20, 17, 19]
 ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
 ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
 
@@ -489,9 +450,7 @@ ax.annotate("a", annotate_coord, xycoords="axes fraction",
 
 ax = fig.add_subplot(122)
 l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
-slice_start = 12
-slice_end = 14
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+ax = Langleyboxplot([22, 21], label=l, ax=ax)
 ax.yaxis.tick_right()
 
 ax.set_xticks([0.5, 1, 2])
@@ -509,7 +468,14 @@ figures.append(fig)
 # <codecell>
 
 %%R -o q
-hypothesis = "Relationship_with_Parent4 - Relationship_with_Parent5"
+hypothesis = "Heard_From4 - Heard_From5"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <codecell>
+
+%%R -o q
+hypothesis = "Same_Heard_From_as_Recruiter1 - Same_Heard_From_as_Recruiter0"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
@@ -721,7 +687,7 @@ print(q)
 # <codecell>
 
 %%R -o mobilization_times
-mobilization_times = dataf$Parent_Child_Registration_Interval_Corrected_Days
+mobilization_times = mydata$Registration_Interval_Days
 
 # <codecell>
 
@@ -746,7 +712,7 @@ fit.plot_ccdf()
 fit.power_law.plot_ccdf()
 fit.exponential.plot_ccdf()
 fit.lognormal.plot_ccdf()
-fit.distribution_compare('lognormal', 'exponential')
+print fit.distribution_compare('lognormal', 'exponential')
 
 figure()
 fit = powerlaw.Fit(mobilization_times, xmin=1)
@@ -754,7 +720,7 @@ fit.plot_ccdf()
 fit.power_law.plot_ccdf()
 fit.exponential.plot_ccdf()
 fit.lognormal.plot_ccdf()
-fit.distribution_compare('lognormal', 'exponential')
+print fit.distribution_compare('lognormal', 'exponential')
 
 # <markdowncell>
 
@@ -764,13 +730,23 @@ fit.distribution_compare('lognormal', 'exponential')
 # <codecell>
 
 %%R
-par(mfrow = c(2,2))
+print(summary(analysis))
+
+# <codecell>
+
+%%R
+pdf('Model_Fit_Supporting_Information.pdf', paper="a4", height=9)
+par(mfrow = c(4,3))
 zph<-cox.zph(analysis)
-for (j in 1:nrow(zph$var)){
-    if (!is.na(zph$table[j,3])){
-        plot(zph[j])
-    }
-}
+target_variables<-which(
+    ( 
+    #All the target variables are either an interaction or one of the "Heard_From" factors.
+    grepl(":", rownames(zph$table)) | 
+    grepl("Heard_From", rownames(zph$table))
+    ) &
+    !is.na(zph$table[,1])
+    )
+plot(zph[target_variables])
 
 # <markdowncell>
 
@@ -785,9 +761,7 @@ fig = figure(figsize=(figwidth, figwidth/1.618))
 
 ax = fig.add_subplot(111)
 l = ['Different Country', 'Different City', 'Same City']
-slice_start = 20
-slice_end = 23
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
+ax = Langleyboxplot([13,12,14], label=l, ax=ax)
 #ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
 ax.set_xticks([1, 2, 3])
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -799,7 +773,7 @@ figures.append(fig)
 # <codecell>
 
 %%R -o q
-hypothesis = "Parent_Child_LocationDifferent Country - Parent_Child_LocationSame City"
+hypothesis = "Location_ComparisonDifferent Country - Location_ComparisonSame City"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
