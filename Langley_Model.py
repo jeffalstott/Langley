@@ -175,7 +175,6 @@ print(sizes_fit.loglikelihood_ratio('power_law', 'lognormal'))
 x = array([sizes_fit.xmin, max(team_sizes)])
 y = sizes_fit.power_law.ccdf(x)
 ax.plot(x,y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(sizes_fit.alpha, sizes_fit.xmin))
-handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[::-1], labels[::-1], loc=3)
 
 #########
@@ -339,7 +338,7 @@ def boxplot(middle, boxtop, boxbottom, whiskertop, whiskerbottom, label=None, co
     if label:
         if orientation=='forest':
             ax.set_yticks(positions)
-            ax.set_yticklabels(label[::-1])
+            ax.set_yticklabels(label[::-1])#, horizontalalignment='center')
         else:
             ax.set_xticks(positions)
             ax.set_xticklabels(label)
@@ -391,12 +390,20 @@ ax = fig.add_subplot(111)
 l = []
 for i in ['Female', 'Male']:
     for j in ['Female', 'Male']:
-        l.append(r'%s$\rightarrow$%s'%(j, i))
+        l.append(r'%s$\rightarrow$'%j+'\n'+i)
 
 slice_start = 27
 slice_end = 31
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-ylabel(r'Recruiter Gender $\rightarrow$ Recruit Gender')
+ax.set_yticklabels(l[::-1], horizontalalignment='center')
+
+#Getting the ylabels to be placed correctly.
+plt.draw()
+yax = ax.get_yaxis()
+pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
+yax.set_tick_params(pad=pad/2)
+
+ylabel(r'Recruiter Gender $\rightarrow$' "\nRecruit Gender", horizontalalignment='center')
 #ax.set_yscale('log')
 #ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
 #             fontsize=14) 
@@ -444,10 +451,16 @@ annotate_coord = (-.15, 1)
 ax = fig.add_subplot(121)
 l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
 ax = Langleyboxplot([22, 21], label=l, ax=ax)
+ax.set_yticklabels(l[::-1], rotation=90, horizontalalignment='center')
 
+#Getting the ylabels to be placed correctly.
+plt.draw()
+yax = ax.get_yaxis()
+pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
+yax.set_tick_params(pad=pad/2)
 
-ax.set_xticks([0.5, 1, 2])
-ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax.set_xticks([0.5, 1, 10])
+ax.set_xticklabels([0.5, 1, 10])
 
 ax.annotate("A", annotate_coord, xycoords="axes fraction",
              fontproperties=panel_label_font) 
@@ -458,8 +471,10 @@ l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
 indices = [18, 16, 15, 20, 17, 19]
 ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
 ax.yaxis.tick_right()
-
-ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
+ax.set_yticklabels(l[::-1], rotation=-45) 
+                   
+ax.set_xticks([0.5, 1, 10])
+ax.set_xticklabels([0.5, 1, 10])
 
 ylabel('Source from which Recruit First \nHeard about the Contest')
 ax.yaxis.set_label_position("right")
@@ -467,9 +482,6 @@ ax.yaxis.set_label_position("right")
 ax.annotate("B", annotate_coord, xycoords="axes fraction", 
              fontproperties=panel_label_font) 
 
-
-#subplots_adjust(hspace=0.5)
-#suptitle("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
@@ -499,7 +511,7 @@ figwidth = 3.5
 fig = figure(figsize=(figwidth, figwidth/1.618))
 
 ax = fig.add_subplot(111)
-l = ['Different Country', 'Different City', 'Same City']
+l = ['Different\nCountry', 'Different\nCity', 'Same\nCity']
 ax = Langleyboxplot([13,12,14], label=l, ax=ax)
 #ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
 ax.set_xticks([1, 2, 3])
