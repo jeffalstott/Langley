@@ -20,7 +20,14 @@ sfn = 1
 
 matplotlib.rc('font', **{'sans-serif' : 'Arial', 
                          'family' : 'sans-serif',
-                         'size' : 7})
+                         'size' : 10})
+
+from matplotlib.font_manager import FontProperties
+
+panel_label_font = FontProperties().copy()
+panel_label_font.set_weight("bold")
+panel_label_font.set_size(12.0)
+panel_label_font.set_family("sans-serif")
 
 # <markdowncell>
 
@@ -130,8 +137,8 @@ ymin= cut*min(yy for xx,yy in pos.values())
 #ax.set_ylim(ymin,ymax)
 
 yl = ax.set_ylabel("")
-ax.annotate("a", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax.annotate("A", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 
 #######
@@ -157,8 +164,8 @@ ax.set_xlabel("Team Size")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(10**-3,1)
 xlim(1, 10**3)
-ax.annotate("b", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax.annotate("B", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 print(sizes_fit.alpha)
 print(sizes_fit.xmin)
@@ -181,8 +188,8 @@ ax.set_xlabel("Number of Recruits per Participant")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(1.0/10**3,1)
 xlim(1, 10.0**3)
-ax.annotate("c", (0,1.), xycoords=(yl, "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax.annotate("C", (0,1.), xycoords=(yl, "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 print(num_children_fit.alpha)
 print(num_children_fit.xmin)
@@ -243,7 +250,6 @@ analysis<-coxph(Surv(Registration_Interval_Days) ~
     + Recruitment_Generation-1
     + Recruiter_Join_Date_Numeric_Days,
     , data=mydata
-    , subset=mydata$Registration_Interval_Days>0.001
     , singular.ok=TRUE)
 
 print(analysis$call)
@@ -366,7 +372,7 @@ def boxplot(middle, boxtop, boxbottom, whiskertop, whiskerbottom, label=None, co
 def Langleyboxplot(indices, **kwargs):
     print(factor_labels[indices])
     ax = boxplot(model_data['expcoef'][indices],
-        exp(coef+se)[indices], exp(coef-se)[indices], 
+        exp(model_data['coef']+model_data['se'])[indices], exp(model_data['coef']-model_data['se'])[indices], 
         model_data['upper95'][indices], model_data['lower95'][indices],
         **kwargs)
     return ax
@@ -436,28 +442,30 @@ fig = figure(figsize=(figwidth, figwidth/1.618))
 annotate_coord = (-.15, 1)
 
 ax = fig.add_subplot(121)
-#l = ['Friend', 'Family', 'Organization', 'Langley', 'Media', 'Other']
-#slice_start = 14
-#slice_end = 20
-l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
-indices = [18, 16, 15, 20, 17, 19]
-ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
-ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
-
-ylabel('Source from which Recruit First \nHeard about the Contest')
-ax.annotate("a", annotate_coord, xycoords="axes fraction",
-             fontsize=8, fontweight='bold') 
-
-ax = fig.add_subplot(122)
 l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
 ax = Langleyboxplot([22, 21], label=l, ax=ax)
-ax.yaxis.tick_right()
+
 
 ax.set_xticks([0.5, 1, 2])
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-ax.annotate("b", annotate_coord, xycoords="axes fraction", 
-             fontsize=8, fontweight='bold') 
+ax.annotate("A", annotate_coord, xycoords="axes fraction",
+             fontproperties=panel_label_font) 
+
+
+ax = fig.add_subplot(122)
+l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
+indices = [18, 16, 15, 20, 17, 19]
+ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
+ax.yaxis.tick_right()
+
+ax.set_xticklabels([ax.get_xlim()[0], 1, 10])
+
+ylabel('Source from which Recruit First \nHeard about the Contest')
+ax.yaxis.set_label_position("right")
+
+ax.annotate("B", annotate_coord, xycoords="axes fraction", 
+             fontproperties=panel_label_font) 
 
 
 #subplots_adjust(hspace=0.5)
@@ -468,14 +476,14 @@ figures.append(fig)
 # <codecell>
 
 %%R -o q
-hypothesis = "Heard_From4 - Heard_From5"
+hypothesis = "Same_Heard_From_as_Recruiter1 - Same_Heard_From_as_Recruiter0"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
 # <codecell>
 
 %%R -o q
-hypothesis = "Same_Heard_From_as_Recruiter1 - Same_Heard_From_as_Recruiter0"
+hypothesis = "Heard_From4 - Heard_From5"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
@@ -483,6 +491,35 @@ print(q)
 
 # Figure 4
 # ----
+
+# <codecell>
+
+figwidth = 3.5
+
+fig = figure(figsize=(figwidth, figwidth/1.618))
+
+ax = fig.add_subplot(111)
+l = ['Different Country', 'Different City', 'Same City']
+ax = Langleyboxplot([13,12,14], label=l, ax=ax)
+#ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
+ax.set_xticks([1, 2, 3])
+ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+#title("Figure %i"%fn)
+fn+=1
+figures.append(fig)
+
+# <codecell>
+
+%%R -o q
+hypothesis = "Location_ComparisonDifferent Country - Location_ComparisonSame City"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <markdowncell>
+
+# Figure 5
+# -----
 
 # <codecell>
 
@@ -508,8 +545,8 @@ t = ax1.get_xticks()
 offset = 10**-4.5
 text(mean(t[1:3]), offset, group, horizontalalignment='center')
 
-ax1.annotate("a", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax1.annotate("A", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 
 ########
@@ -571,8 +608,8 @@ slice_end = 12
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
 xlabel('Recruit Age Group')
 ax.set_yscale('log')
-ax.annotate("b", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 #########
 ax1 = fig.add_subplot(4,4,9)
@@ -595,8 +632,8 @@ t = ax.get_xticks()
 offset = 10**-4.5
 text(mean(t[1:3]), offset, group, horizontalalignment='center')
 
-ax1.annotate("c", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax1.annotate("C", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 
 ########
@@ -659,8 +696,8 @@ slice_end = 8
 ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
 xlabel('Recruiter Age Group')
 ax.set_yscale('log')
-ax.annotate("d", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontsize=8, fontweight='bold') 
+ax.annotate("D", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
 
 subplots_adjust(hspace=0.5)
 #suptitle("Figure %i"%fn)
@@ -676,7 +713,7 @@ print(q)
 
 # <markdowncell>
 
-# Supplementary Information
+# Supporting Information
 # ----
 
 # <markdowncell>
@@ -724,7 +761,7 @@ print fit.distribution_compare('lognormal', 'exponential')
 
 # <markdowncell>
 
-# Figure S2: Model Checking
+# SI: Model Checking
 # ----
 
 # <codecell>
@@ -750,36 +787,7 @@ plot(zph[target_variables])
 
 # <markdowncell>
 
-# Figure S3: Geography
-# ----
-
-# <codecell>
-
-figwidth = 3.5
-
-fig = figure(figsize=(figwidth, figwidth/1.618))
-
-ax = fig.add_subplot(111)
-l = ['Different Country', 'Different City', 'Same City']
-ax = Langleyboxplot([13,12,14], label=l, ax=ax)
-#ax.set_xticklabels([ax.get_xlim()[0], 1, ax.get_xlim()[1]])
-ax.set_xticks([1, 2, 3])
-ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-
-#title("Figure %i"%fn)
-fn+=1
-figures.append(fig)
-
-# <codecell>
-
-%%R -o q
-hypothesis = "Location_ComparisonDifferent Country - Location_ComparisonSame City"
-q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
-print(q)
-
-# <markdowncell>
-
-# Figure S4: Other Control Variables
+# Figure S2: Other Control Variables
 # ----
 
 # <codecell>
@@ -789,13 +797,13 @@ figwidth = 3.5
 fig = plt.figure(figsize=(figwidth, figwidth/1.618))
 
 ax = fig.add_subplot(111)
-l = ['Additional Generation\nin Team after the First',
-    "Recruit Recruiting an\n Additional Future Recruit",
-    'Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)']
+l = ['Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)', 
+     'Additional Generation\nin Team after the First',
+    "Recruit Recruiting an\n Additional Future Recruit"]
 
 slice_start = 24
 slice_end = 27
-ax = Langleyboxplot([25,24,26], label=l, ax=ax, orientation='forest')
+ax = Langleyboxplot([26, 25,24], label=l, ax=ax, orientation='forest')
 #ax.set_yticks([0.5, 1, 2])
 #ax.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 #ax.xaxis.label.set_size(5)
