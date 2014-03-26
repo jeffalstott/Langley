@@ -1,4 +1,4 @@
-
+load('/data/alstottjd/Langley/Langleydataframe_children')
 pdf('plot.pdf')
 par.default <- par()
 
@@ -26,6 +26,7 @@ analysis<-coxph(Surv(Parent_Child_Registration_Interval_Corrected_Days) ~
     + Depth_in_Invite_Chain-1
     + Parent_Join_Time_numeric_days,
     , data=dataf
+    , subset=dataf$Parent_Child_Registration_Interval_Corrected_Days>0
     , singular.ok=TRUE)
 
 m_var = c(

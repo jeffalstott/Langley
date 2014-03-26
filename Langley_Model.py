@@ -18,9 +18,26 @@ sfn = 1
 
 # <codecell>
 
+figwidth = 3.27
+figwidth2 = 6.83
+figlength = figwidth*1.6180339
+figlength_wide = figwidth/1.6180339
+figlength2 = figwidth2*1.6180339
+figlength_wide2 = figwidth2/1.6180339
+
 matplotlib.rc('font', **{'sans-serif' : 'Arial', 
                          'family' : 'sans-serif',
                          'size' : 10})
+
+import pylab
+pylab.rcParams['xtick.major.pad']='8'
+pylab.rcParams['ytick.major.pad']='8'
+#pylab.rcParams['font.sans-serif']='Arial'
+
+from matplotlib import rc
+rc('font', family='sans-serif')
+rc('font', size=10.0)
+rc('text', usetex=False)
 
 from matplotlib.font_manager import FontProperties
 
@@ -39,7 +56,7 @@ panel_label_font.set_family("sans-serif")
 import networkx
 import pickle
 G = pickle.load(open('/data/alstottjd/Langley/Network_parents.p'))
-C=networkx.connected_component_subgraphs(G.to_undirected())
+C = networkx.connected_component_subgraphs(G.to_undirected())
 
 # <codecell>
 
@@ -61,11 +78,7 @@ def max_depth(G):
 
 # <codecell>
 
-figwidth = 8.6
-
-fig = plt.figure(figsize=(figwidth, figwidth/(2*1.618)))
-
-
+fig = plt.figure(figsize=(figwidth2, figwidth2/(2*1.618)))
 
 ######
 ax = fig.add_subplot(131)
@@ -74,9 +87,7 @@ import matplotlib.cm as cm
 
 i = 3 #Picked team number 3
 
-        
 d = max_depth(C[i])
-
 depth_colors = []
 for j in C[i].nodes():
     depth_percentage = C[i].node[j]['depth']/d
@@ -109,15 +120,11 @@ node_size = 50
 alpha = 1
 width = .5
 
-#title("Example team, %i members, %.0f generations"%(len(C[i].node), d))
 H = C[i].copy()
 for n in H.node:
     for k in H.node[n].keys():
         H.node[n].pop(k)
-#pos=networkx.spring_layout(C[i].to_undirected())
 pos=networkx.graphviz_layout(H,prog='dot')
-#pos=networkx.graphviz_layout(C[i],prog="twopi",root=0)
-
 
 networkx.draw(C[i],pos,node_size=node_size,
     alpha=alpha, width=width, 
@@ -128,16 +135,14 @@ networkx.draw(C[i],pos,node_size=node_size,
     ax=ax)
 
 # adjust the plot limits
-cut = 1.15
-xmax= cut*max(xx for xx,yy in pos.values())
-xmin= cut*min(xx for xx,yy in pos.values())
-ymax= cut*max(yy for xx,yy in pos.values())
-ymin= cut*min(yy for xx,yy in pos.values())
-#ax.set_xlim(xmin,xmax)
-#ax.set_ylim(ymin,ymax)
+xmax= max(xx for xx,yy in pos.values())
+xmin= min(xx for xx,yy in pos.values())
+ymax= max(yy for xx,yy in pos.values())
+ymin= min(yy for xx,yy in pos.values())
+ax.set_xlim(xmin*-1.4,xmax*1.1)
+ax.set_ylim(ymin*.1,ymax*1.05)
 
-yl = ax.set_ylabel("")
-ax.annotate("A", (0,1.), xycoords=(yl, "axes fraction"), 
+ax.annotate("A", (0,1), xycoords=(ax, "axes fraction"), 
              fontproperties=panel_label_font) 
 
 
@@ -150,7 +155,7 @@ for i in range(len(C)):
     team_sizes[i] = networkx.number_of_nodes(C[i])
 sizes_fit = powerlaw.Fit(team_sizes, discrete=True)
 
-number_of_children = asarray(G.out_degree().values())
+number_of_children = asarray(G.out_degree().values()).astype('float')
 number_of_children = number_of_children[number_of_children>0]
 num_children_fit = powerlaw.Fit(number_of_children, discrete=True)
 
@@ -174,8 +179,20 @@ print(sizes_fit.loglikelihood_ratio('power_law', 'lognormal'))
 
 x = array([sizes_fit.xmin, max(team_sizes)])
 y = sizes_fit.power_law.ccdf(x)
+v, c = sizes_fit.ccdf(original_data=True)
+i = where(v==sizes_fit.xmin)
+y *= c[i]
+
 ax.plot(x,y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(sizes_fit.alpha, sizes_fit.xmin))
-ax.legend(handles[::-1], labels[::-1], loc=3)
+#lg = legend(loc=3)
+#lg.draw_frame(False)
+t = r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(sizes_fit.alpha, sizes_fit.xmin)
+text(.5, .7, t, transform = ax.transAxes, horizontalalignment='left')
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
 
 #########
 ax = fig.add_subplot(133)
@@ -183,7 +200,7 @@ x,y = num_children_fit.ccdf(original_data=True)
 ax.scatter(x,y, s=s)
 ax.set_xscale("log")
 ax.set_yscale("log")
-ax.set_xlabel("Number of Recruits per Participant")
+ax.set_xlabel("Recruits per Participant")
 yl = ax.set_ylabel(u"p(X \u2265 x)")
 ylim(1.0/10**3,1)
 xlim(1, 10.0**3)
@@ -195,15 +212,28 @@ print(num_children_fit.xmin)
 print(num_children_fit.loglikelihood_ratio('power_law', 'exponential'))
 print(num_children_fit.loglikelihood_ratio('power_law', 'lognormal'))
 
-x = array([sizes_fit.xmin, max(number_of_children)])
-y = sizes_fit.power_law.ccdf(x)
-ax.plot(x,y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(num_children_fit.alpha, num_children_fit.xmin))
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[::-1], labels[::-1], loc=3)
+x = array([num_children_fit.xmin, max(number_of_children)])
+y = num_children_fit.power_law.ccdf(x)
+v, c = num_children_fit.ccdf(original_data=True)
+i = where(v==num_children_fit.xmin)
+y *= c[i]
 
-subplots_adjust(wspace=.3)
-#suptitle("Figure S%i"%sfn)
-sfn+=1
+ax.plot(x,y, 'k--', label=r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(num_children_fit.alpha, num_children_fit.xmin))
+#lg = legend(loc=1)
+#lg.draw_frame(False)
+t = r"$\alpha = -%.2f$""\n"r"$x_{min} = %d$"%(num_children_fit.alpha, num_children_fit.xmin)
+text(.5, .7, t, transform = ax.transAxes, horizontalalignment='left')
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+#suptitle("Figure %i"%fn)
+fig.tight_layout()
+subplots_adjust(wspace=.4)
+
+fn+=1
 figures.append(fig)
 
 # <markdowncell>
@@ -383,9 +413,7 @@ def Langleyboxplot(indices, **kwargs):
 
 # <codecell>
 
-figwidth = 3.5
-
-fig = figure(figsize=(figwidth, figwidth/1.618))
+fig = plt.figure(figsize=(figwidth, figlength_wide))
 ax = fig.add_subplot(111)
 l = []
 for i in ['Female', 'Male']:
@@ -404,24 +432,12 @@ pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
 yax.set_tick_params(pad=pad/2)
 
 ylabel(r'Recruiter Gender $\rightarrow$' "\nRecruit Gender", horizontalalignment='center')
-#ax.set_yscale('log')
-#ax.annotate("A", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-#             fontsize=14) 
 
-#ax = fig.add_subplot(212)
-#l = ['Parent: Female', 'Parent: Male', 'Child: Female', 'Child: Male']
-#slice_start = 0
-#slice_end = 4
-#ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax)
-#ax.set_yscale('log')
-#ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-#             fontsize=14) 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
 
-
-
-
-#subplots_adjust(hspace=0.5)
-#suptitle("Figure %i"%fn)
 #title("Figure %i"%fn)
 fn+=1
 figures.append(fig)
@@ -440,62 +456,216 @@ print(q)
 
 # <codecell>
 
-figwidth = 7.2
+fig = plt.figure(figsize=(figwidth2, figlength2))
+l = ["<20", "20-40", "40-60", ">60"]
+fontsize=8
+ax1 = fig.add_subplot(441)
+        
+indices = range(31,47,4)
+ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
+xl = xlim()
+xlim(xl[0], xl[1]+.5)
 
-fig = figure(figsize=(figwidth, figwidth/1.618))
-#fig = figure(figsize=(4.6,7.44295635))
-#fig = figure(figsize=(4.6,2.84295635))
-#fig = figure(figsize=(2.3,3.7214))
-annotate_coord = (-.15, 1)
+ax1.set_xticklabels(l, fontsize=fontsize)
+text(-.01, -.1, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.175, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
 
-ax = fig.add_subplot(121)
-l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
-ax = Langleyboxplot([22, 21], label=l, ax=ax)
-ax.set_yticklabels(l[::-1], rotation=90, horizontalalignment='center')
+group="<20"
+text(.5, -.175, group, horizontalalignment='center', transform = ax1.transAxes)
 
-#Getting the ylabels to be placed correctly.
-plt.draw()
-yax = ax.get_yaxis()
-pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
-yax.set_tick_params(pad=pad/2)
-
-ax.set_xticks([0.5, 1, 10])
-ax.set_xticklabels([0.5, 1, 10])
-
-ax.annotate("A", annotate_coord, xycoords="axes fraction",
+ax1.annotate("A", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
              fontproperties=panel_label_font) 
 
 
-ax = fig.add_subplot(122)
-l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
-indices = [18, 16, 15, 20, 17, 19]
-ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
-ax.yaxis.tick_right()
-ax.set_yticklabels(l[::-1], rotation=-45) 
-                   
-ax.set_xticks([0.5, 1, 10])
-ax.set_xticklabels([0.5, 1, 10])
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+ax1.get_xaxis().tick_bottom()
+ax1.get_yaxis().tick_left()
 
-ylabel('Source from which Recruit First \nHeard about the Contest')
-ax.yaxis.set_label_position("right")
+########
+ax = fig.add_subplot(442, sharey=ax1)
+        
+indices = range(32,47,4)
+ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
 
-ax.annotate("B", annotate_coord, xycoords="axes fraction", 
+group="20-40"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+########
+ax = fig.add_subplot(443, sharey=ax1)
+        
+indices = range(33,47,4)
+ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
+
+group="40-60"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.set_ylim(10**-3,10**3)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+########
+ax = fig.add_subplot(444)
+        
+indices = range(34,47,4)
+ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
+
+group=">60"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.set_ylim(10**-3,10**3)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+xl = xlim()
+xlim(xl[0]-.5, xl[1]+.5)
+
+#########
+ax = fig.add_subplot(412)
+l = ["<20", "20-40", "40-60", ">60"]
+slice_start = 8
+slice_end = 12
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
+xlabel('Recruit Age Group')
+ax.set_yscale('log')
+ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+#########
+ax1 = fig.add_subplot(4,4,9)
+
+l = ["<20", "20-40", "40-60", ">60"]
+
+        
+indices = range(31,35)
+ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
+xl = xlim()
+xlim(xl[0], xl[1]+.5)
+ax1.set_xticklabels(l, fontsize=fontsize)
+
+#ax1.set_xticklabels(["<20", "20-40", "40-60", ">60"], fontsize=8)
+text(-.01, -.1, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
+text(-.01, -.175, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
+
+group="<20"
+text(.5, -.175, group, horizontalalignment='center', transform = ax1.transAxes)
+
+ax1.annotate("C", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
              fontproperties=panel_label_font) 
 
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+ax1.get_xaxis().tick_bottom()
+ax1.get_yaxis().tick_left()
+
+
+########
+ax = fig.add_subplot(4,4,10, sharey=ax1)
+        
+indices = range(35,39)
+ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
+
+group="20-40"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+########
+ax = fig.add_subplot(4,4,11, sharey=ax1)
+        
+indices = range(39,43)
+ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
+
+group="40-60"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.set_ylim(10**-3,10**3)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+########
+ax = fig.add_subplot(4,4,12)
+        
+indices = range(43,47)
+ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
+ax.set_xticklabels(l, fontsize=fontsize)
+
+group=">60"
+text(.5, -.175, group, horizontalalignment='center', transform = ax.transAxes)
+
+
+
+ax.set_ylabel("")
+setp( ax.get_yticklabels(), visible=False)
+ax.set_ylim(10**-3,10**3)
+
+xl = xlim()
+xlim(xl[0]-.5, xl[1]+.5)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+
+#########
+ax = fig.add_subplot(414)
+l = ["<20", "20-40", "40-60", ">60"]
+slice_start = 4
+slice_end = 8
+ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
+xlabel('Recruiter Age Group')
+ax.set_yscale('log')
+ax.annotate("D", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
+             fontproperties=panel_label_font) 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+#suptitle("Figure %i"%fn)
+fig.tight_layout()
+subplots_adjust(hspace=0.4)
 fn+=1
 figures.append(fig)
 
 # <codecell>
 
 %%R -o q
-hypothesis = "Same_Heard_From_as_Recruiter1 - Same_Heard_From_as_Recruiter0"
-q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
-print(q)
-
-# <codecell>
-
-%%R -o q
-hypothesis = "Heard_From4 - Heard_From5"
+hypothesis = "Age1 - Age4"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
@@ -506,9 +676,7 @@ print(q)
 
 # <codecell>
 
-figwidth = 3.5
-
-fig = figure(figsize=(figwidth, figwidth/1.618))
+fig = plt.figure(figsize=(figwidth, figlength_wide))
 
 ax = fig.add_subplot(111)
 l = ['Different\nCountry', 'Different\nCity', 'Same\nCity']
@@ -517,7 +685,13 @@ ax = Langleyboxplot([13,12,14], label=l, ax=ax)
 ax.set_xticks([1, 2, 3])
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
 #title("Figure %i"%fn)
+fig.tight_layout()
 fn+=1
 figures.append(fig)
 
@@ -535,191 +709,70 @@ print(q)
 
 # <codecell>
 
-figwidth = 3.5
+fig = plt.figure(figsize=(figwidth2, figlength_wide2))
 
-fig = figure(figsize=(7.2,7.2*1.618))
+annotate_coord = (-.1, 1.01)
 
-l = ["<20", "20-40", "40-60", ">60"]
-fontsize=8
-ax1 = fig.add_subplot(441)
-        
-indices = range(31,47,4)
-ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
-xl = xlim()
-xlim(xl[0], xl[1]+.5)
+ax = fig.add_subplot(121)
+l = ['Recruiter & Recruit\n Same Source', 'Recruiter & Recruit\n Different Source']
+ax = Langleyboxplot([22, 21], label=l, ax=ax)
+ax.set_yticklabels(l[::-1], rotation=90, horizontalalignment='center')
 
-ax1.set_xticklabels(l, fontsize=fontsize)
-text(-.01, -.1, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
-text(-.01, -.25, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
+#Getting the ylabels to be placed correctly.
+plt.draw()
+yax = ax.get_yaxis()
+pad = max(T.label.get_window_extent().width for T in yax.majorTicks)
+yax.set_tick_params(pad=pad/2)
 
-group="<20"
-t = ax1.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
+ax.set_xticks([0.5, 1, 10])
+ax.set_xticklabels([0.5, 1, 10])
 
-ax1.annotate("A", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
+ax.annotate("A", annotate_coord, xycoords="axes fraction",
+             fontproperties=panel_label_font) 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+
+ax = fig.add_subplot(122)
+l = ['Langley', 'Family', 'Friend', 'Other', 'Organization','Media']
+indices = [18, 16, 15, 20, 17, 19]
+ax = Langleyboxplot(indices, label=l, spacing=3, ax=ax)
+#ax.yaxis.tick_right()
+ax.set_yticklabels(l[::-1], rotation=45) 
+                   
+ax.set_xticks([0.5, 1, 10])
+ax.set_xticklabels([0.5, 1, 10])
+
+ylabel('Source from which Recruit First \nHeard about the Contest')
+#ax.yaxis.set_label_position("right")
+
+ax.annotate("B", (-.45, 1.01), xycoords="axes fraction", 
              fontproperties=panel_label_font) 
 
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
 
-########
-ax = fig.add_subplot(442, sharey=ax1)
-        
-indices = range(32,47,4)
-ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
+fig.tight_layout()
+subplots_adjust(wspace=.6)
 
-group="20-40"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-
-########
-ax = fig.add_subplot(443, sharey=ax1)
-        
-indices = range(33,47,4)
-ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
-
-group="40-60"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-ax.set_ylim(10**-3,10**3)
-
-########
-ax = fig.add_subplot(444)
-        
-indices = range(34,47,4)
-ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
-
-group=">60"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-ax.set_ylim(10**-3,10**3)
-
-xl = xlim()
-xlim(xl[0]-.5, xl[1]+.5)
-
-#########
-ax = fig.add_subplot(412)
-l = ["<20", "20-40", "40-60", ">60"]
-slice_start = 8
-slice_end = 12
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
-xlabel('Recruit Age Group')
-ax.set_yscale('log')
-ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontproperties=panel_label_font) 
-
-#########
-ax1 = fig.add_subplot(4,4,9)
-
-l = ["<20", "20-40", "40-60", ">60"]
-
-        
-indices = range(31,35)
-ax1 = Langleyboxplot(indices, label=l, ax=ax1, orientation='box')
-xl = xlim()
-xlim(xl[0], xl[1]+.5)
-ax1.set_xticklabels(l, fontsize=fontsize)
-
-#ax1.set_xticklabels(["<20", "20-40", "40-60", ">60"], fontsize=8)
-text(-.01, -.1, 'Recruiter Age:', transform = ax1.transAxes, horizontalalignment='right')
-text(-.01, -.25, 'Recruit Age:', transform = ax1.transAxes, horizontalalignment='right')
-
-group="<20"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-ax1.annotate("C", (0,1.), xycoords=(ax1.get_yaxis().get_label(), "axes fraction"), 
-             fontproperties=panel_label_font) 
-
-
-########
-ax = fig.add_subplot(4,4,10, sharey=ax1)
-        
-indices = range(35,39)
-ax = Langleyboxplot(indices, ax=ax, label=l, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
-
-group="20-40"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-
-########
-ax = fig.add_subplot(4,4,11, sharey=ax1)
-        
-indices = range(39,43)
-ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
-
-group="40-60"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-ax.set_ylim(10**-3,10**3)
-
-########
-ax = fig.add_subplot(4,4,12)
-        
-indices = range(43,47)
-ax = Langleyboxplot(indices, label=l, ax=ax, orientation='box')
-ax.set_xticklabels(l, fontsize=fontsize)
-
-group=">60"
-t = ax.get_xticks()
-offset = 10**-4.5
-text(mean(t[1:3]), offset, group, horizontalalignment='center')
-
-
-ax.set_ylabel("")
-setp( ax.get_yticklabels(), visible=False)
-ax.set_ylim(10**-3,10**3)
-
-xl = xlim()
-xlim(xl[0]-.5, xl[1]+.5)
-
-
-#########
-ax = fig.add_subplot(414)
-l = ["<20", "20-40", "40-60", ">60"]
-slice_start = 4
-slice_end = 8
-ax = Langleyboxplot(range(slice_start, slice_end), label=l, ax=ax, orientation='box')
-xlabel('Recruiter Age Group')
-ax.set_yscale('log')
-ax.annotate("D", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
-             fontproperties=panel_label_font) 
-
-subplots_adjust(hspace=0.5)
-#suptitle("Figure %i"%fn)
 fn+=1
 figures.append(fig)
 
 # <codecell>
 
 %%R -o q
-hypothesis = "Age1 - Age4"
+hypothesis = "Same_Heard_From_as_Recruiter1 - Same_Heard_From_as_Recruiter0"
+q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
+print(q)
+
+# <codecell>
+
+%%R -o q
+hypothesis = "Heard_From4 - Heard_From5"
 q = linearHypothesis(analysis, hypothesis, singular.ok=TRUE, vcov.=V)
 print(q)
 
@@ -746,30 +799,18 @@ print(std(mobilization_times))
 from scipy.stats import skew
 print skew(mobilization_times)
 
-figwidth = 3.5
-figsize(figwidth, figwidth/1.618)
+figsize(figwidth, figlength_wide)
 hist(mobilization_times)
 xlabel("Mobilization Speed (Days)")
 ylabel("Participant Count")
+
+ax = gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
 figures.append(gcf())
-
-# <codecell>
-
-import powerlaw
-fit = powerlaw.Fit(mobilization_times)
-fit.plot_ccdf()
-fit.power_law.plot_ccdf()
-fit.exponential.plot_ccdf()
-fit.lognormal.plot_ccdf()
-print fit.distribution_compare('lognormal', 'exponential')
-
-figure()
-fit = powerlaw.Fit(mobilization_times, xmin=1)
-fit.plot_ccdf()
-fit.power_law.plot_ccdf()
-fit.exponential.plot_ccdf()
-fit.lognormal.plot_ccdf()
-print fit.distribution_compare('lognormal', 'exponential')
 
 # <markdowncell>
 
@@ -804,12 +845,13 @@ plot(zph[target_variables])
 
 # <codecell>
 
-figwidth = 3.5
+#figwidth = 3.5
 
-fig = plt.figure(figsize=(figwidth, figwidth/1.618))
+#fig = plt.figure(figsize=(figwidth, figwidth/1.618))
+fig = plt.figure(figsize=(figwidth, figlength_wide))
 
 ax = fig.add_subplot(111)
-l = ['Additional Day after\nRegistration Opened\n(Inverse of Days Left Until Contest)', 
+l = ['Additional Day after\nRegistration Opened\n(Inverse of Days\nLeft In Contest)', 
      'Additional Generation\nin Team after the First',
     "Recruit Recruiting an\n Additional Future Recruit"]
 
@@ -824,6 +866,11 @@ ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 ax.yaxis.label.set_size(7)
 
 
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
 
 #ax.annotate("B", (0,1.), xycoords=(ax.get_yaxis().get_label(), "axes fraction"), 
 #             fontsize=14) 
